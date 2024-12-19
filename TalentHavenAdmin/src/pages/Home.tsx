@@ -4,7 +4,7 @@ export function Home() {
     return (
         <>
             <AuthenticatedTemplate>
-                Here is the User Board Home Page. Anything can be here
+                Here is the Admin Page. Anything can be here
             </AuthenticatedTemplate>
 
             <UnauthenticatedTemplate>
