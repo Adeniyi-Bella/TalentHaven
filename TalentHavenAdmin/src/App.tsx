@@ -8,6 +8,8 @@ import { MsalProvider } from "@azure/msal-react";
 import { PageLayout } from "./ui-components/PageLayout";
 import { interfaceMsalInstance } from "./types/types";
 import PagesRouters from "./routes/PagesRouters";
+import { useNavigate } from "react-router-dom";
+import { CustomNavigationClient } from "./utils/NavigationClient";
 
 /**
  * Main application component.
@@ -19,6 +21,10 @@ import PagesRouters from "./routes/PagesRouters";
  */
 function App({ pca }: interfaceMsalInstance): JSX.Element {
 
+    const navigate = useNavigate();
+    const navigationClient = new CustomNavigationClient(navigate);
+    pca.setNavigationClient(navigationClient);
+    
     return (
        
         <MsalProvider instance={pca}>

@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { Home } from "../pages/Home";
+import { AddPosition } from "../pages/AddPosition";
 // import UserProfile from "../pages/user-profile/UserProfile";
 
 /**
@@ -11,7 +12,7 @@ export default function PagesRouters(): JSX.Element {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
-            {/* <Route path= "/profile" element = {<UserProfile />} /> */}
+            <Route path= "/add" element = {<AddPosition />} />
         </Routes>
     );
 }
