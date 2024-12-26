@@ -1,20 +1,10 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { MongoClient } from "mongodb";
-
-interface JobOffer {
-    description: string;
-    position: string;
-}
-
-/** 
- * MongoDB configuration details
- */
-const MONGO_URI: string = process.env.MONGO_URI;
-const DATABASE_NAME: string = process.env.DB;
-const JOB_OFFER_COLLECTION: string =process.env.OFFER_MONGO_COLLECTION;
+import { JobOffer } from "../entities/JobOffer"; // Import the JobOffer entity class
+import { AppDataSource } from "../data-source";
+import { validate } from "class-validator";
 
 /**
- * Handles saving job offer data to the MongoDB database.
+ * Handles saving job offer data to the PostgreSQL database using TypeORM.
  *
  * @param {HttpRequest} request - The HTTP request object containing the job offer data.
  * @param {InvocationContext} context - Azure Functions context object for logging and execution context.
@@ -26,37 +16,57 @@ export async function handleSaveJobOffer(
 ): Promise<HttpResponseInit> {
     context.log(`Processing HTTP request for URL: "${request.url}"`);
 
-    const mongoClient = new MongoClient(MONGO_URI);
+    let jobOfferData: JobOffer;
 
     try {
         // Extract and parse the request body
         const rawRequestBody = await request.text();
-        let jobOfferData: JobOffer;
 
         try {
             jobOfferData = JSON.parse(rawRequestBody);
         } catch {
             context.log("Malformed JSON in the request body.");
-            return createHttpResponse(400, { error: "Unable to add data" });
+            return createHttpResponse(400, { error: "Invalid JSON format" });
         }
 
-        // Check DataType
-        if (!jobOfferData.description || !jobOfferData.position) {
-            context.log("Missing required fields in the job offer data.");
-            return createHttpResponse(400, { error: "Unable to add data" });
+         // Create entity instance
+         const jobOffer = new JobOffer();
+         Object.assign(jobOffer, jobOfferData);
+ 
+         // Validate the entity
+         const errors = await validate(jobOffer);
+         if (errors.length > 0) {
+             const validationErrors = errors.reduce((acc, err) => {
+                 return {
+                     ...acc,
+                     [err.property]: Object.values(err.constraints || {})
+                 };
+             }, {});
+             
+             return createHttpResponse(400, {
+                 error: "Validation failed",
+                 details: validationErrors
+             });
+         }
+
+        // Ensure the connection is established
+        if (!AppDataSource.isInitialized) {
+            await AppDataSource.initialize();
         }
 
-        // Connect to the MongoDB database
-        await mongoClient.connect();
-        const jobOfferCollection = mongoClient.db(DATABASE_NAME).collection(JOB_OFFER_COLLECTION);
+        context.log("Connected to the database successfully.");
+        // Get the repository for the JobOffer entity
+        const jobOfferRepository = AppDataSource.getRepository(JobOffer);
 
-        // Insert the job offer data into the collection
-        const insertResult = await jobOfferCollection.insertOne(jobOfferData);
-        context.log(`Job offer saved successfully with ID: ${insertResult.insertedId}`);
+        // Create and save the job offer data to the PostgreSQL database
+        const newJobOffer = jobOfferRepository.create(jobOfferData);
+        await jobOfferRepository.save(newJobOffer);
+
+        context.log(`Job offer saved successfully with ID: ${newJobOffer.id}`);
 
         return createHttpResponse(200, {
             message: "Job offer saved successfully.",
-            id: insertResult.insertedId.toString(),
+            id: newJobOffer.id.toString(),
         });
 
     } catch (error) {
@@ -66,10 +76,6 @@ export async function handleSaveJobOffer(
             error: "An internal server error occurred.",
             details: errorMessage,
         });
-
-    } finally {
-        // Ensure the MongoDB client is properly closed
-        await mongoClient.close();
     }
 }
 

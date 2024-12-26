@@ -8,12 +8,14 @@
     "watch": "tsc -w",
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",
-    "start": "func start",
+    "dev": "func start",
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",
-    "mongodb": "^6.12.0"
+    "class-validator": "^0.14.1",
+    "pg": "^8.13.1",
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@types/node": "18.x",
