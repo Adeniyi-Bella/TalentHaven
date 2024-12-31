@@ -1,7 +1,6 @@
 import { DataSource } from "typeorm";
 import { JobOffer } from "./entities/JobOffer";
 
-
 /**
  * Database configuration details for PostgreSQL
  */
@@ -13,7 +12,7 @@ export const AppDataSource = new DataSource({
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DATABASE, 
     synchronize: true, // Automatically sync the schema (use cautiously in production)
-    logging: true, // Enable query logging for debugging
+    // logging: true, // Enable query logging for debugging
     entities: [JobOffer], // Specify the entities (tables) that TypeORM will manage
     migrations: ["src/migrations/*.ts"],
     subscribers: [],

@@ -1,12 +1,12 @@
-// entities/JobOffer.ts
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, Column } from "typeorm";
 import { IsString, IsNotEmpty, MaxLength } from "class-validator";
+import { BaseEntity } from "./BaseEntity";
 
 @Entity()
-export class JobOffer {
-    @PrimaryGeneratedColumn()
-    id: number;
-
+export class JobOffer extends BaseEntity {
+    // @PrimaryGeneratedColumn()
+    // id: number;
+    
     @Column()
     @IsString()
     @IsNotEmpty({ message: "Description is required" })
